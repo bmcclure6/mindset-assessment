@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mindset Assessment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #assessment {
+            max-width: 600px;
+            margin: auto;
+        }
+        #navigation {
+            margin-top: 20px;
+            text-align: center;
+        }
+        #navigation button {
+            padding: 10px 20px;
+            margin: 5px;
+        }
+        #results {
+            max-width: 600px;
+            margin: auto;
+            display: none;
+        }
+        #exportBtn {
+            display: none;
+            padding: 10px 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="assessment">
+        <!-- Questions will be dynamically inserted here -->
+    </div>
+    <div id="navigation">
+        <button id="prevBtn" onclick="prevQuestion()">Previous</button>
+        <button id="nextBtn" onclick="nextQuestion()">Next</button>
+    </div>
+    <div id="results">
+        <!-- Results will be displayed here -->
+    </div>
+    <button id="exportBtn" onclick="exportResults()">Export Results</button>
+
+    <script>
+        // Questions array
+        const questions = [
+            // [All 35 questions as provided]
+            "I’m not afraid to stand up for what I believe in, even when it’s uncomfortable.",
+            "I challenge myself to contribute time, energy, or resources to others, even when it might be easier to focus on my own needs.",
+            "I make an effort to understand people’s unique perspectives, even when they are different from my own.",
+            "I consciously choose to see challenges as opportunities for growth and perspective, rather than setbacks.",
+            "I actively look for the positives in a situation, even when it seems difficult or challenging.",
+            "I believe that working collaboratively creates more impactful results than working independently.",
+            "I take action toward my goals, knowing I can adjust along the way if needed.",
+            "I find myself deeply focused and productive when I am engaged in work that matters to me.",
+            "I often think about the kind of legacy or impact I want to leave for others.",
+            "I value my unique gifts and abilities and take pride in the personal qualities and skills I bring to situations.",
+            "I believe the best time to take action is now, rather than waiting for all the conditions to be perfect.",
+            "I intentionally align my daily choices and actions with my interests and values to create a sense of fulfillment in my life.",
+            "I find ways to pay forward the generosity or help I have received in my life.",
+            "I consciously seek out people who inspire and challenge me to grow.",
+            "I push myself to question and overcome beliefs that limit my progress or hold me back.",
+            "I focus on being present and engaged in the moment, even when my mind tries to pull me elsewhere.",
+            "I try to act with intention and purpose, rather than rushing through tasks without focus.",
+            "I prioritize my time and energy on things within my control, rather than focusing on external circumstances.",
+            "I am mindful of the impact my relationships have on my well-being and make time to nurture those that bring out the best in me.",
+            "I’m able to accept support or help from others without feeling uncomfortable or undeserving.",
+            "I take a moment to show appreciation, even for small gestures or efforts made by others.",
+            "I try to make decisions and act in ways that reflect my true values, even when others may expect different things from me.",
+            "I am curious and frequently seek out new experiences or opportunities that reflect my personal interests.",
+            "When I face setbacks, I reflect on what I could have done differently to improve the outcome.",
+            "I am motivated by finding ways to create a positive impact on those around me.",
+            "I hold myself to high standards, whether or not others are paying attention.",
+            "When I set goals, I often aim for ambitious outcomes, even if I’m not sure how I’ll achieve them yet.",
+            "I’m willing to try new things, even when I’m unsure of the outcome.",
+            "I consistently look for ways to grow or learn from both successes and challenges in my life.",
+            "In my interactions, I focus on giving value or support before expecting anything in return.",
+            "I believe that my future success is shaped by the choices and actions I make today.",
+            "When my schedule is busy, I still find time for activities that allow me to feel engaged and fulfilled.",
+            "I believe that giving and helping others is essential to living a meaningful life.",
+            "I tend to look for creative solutions when faced with obstacles.",
+            "I consistently recognize and appreciate the good in my life, even when things aren’t going perfectly."
+        ];
+
+        // Mindset categories and their corresponding question numbers
+        const mindsets = {
+            "Everything is Possible": [5, 7, 27, 31, 34],
+            "Passion First": [1, 12, 22, 23, 32],
+            "We are Connected": [3, 6, 14, 19, 30],
+            "100% Accountable": [15, 18, 24, 26, 29],
+            "Attitude of Gratitude": [4, 10, 13, 21, 35],
+            "Live to Give": [2, 9, 20, 25, 33],
+            "The Time is Now": [8, 11, 16, 17, 28]
+        };
+
+        let currentQuestion = 0;
+        const userAnswers = new Array(questions.length).fill(null);
+
+        function createQuestion(index) {
+            const assessmentDiv = document.getElementById('assessment');
+            assessmentDiv.innerHTML = '';
+            const question = document.createElement('p');
+            question.textContent = `${index + 1}. ${questions[index]}`;
+            assessmentDiv.appendChild(question);
+
+            // Create radio buttons for options 1-5
+            for (let i = 1; i <= 5; i++) {
+                const label = document.createElement('label');
+                label.style.display = 'block';
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = 'response';
+                radio.value = i;
+                if (userAnswers[index] == i) {
+                    radio.checked = true;
+                }
+                label.appendChild(radio);
+                label.appendChild(document.createTextNode(` ${i} - ${getOptionText(i)}`));
+                assessmentDiv.appendChild(label);
+            }
+        }
+
+        function getOptionText(value) {
+            switch (value) {
+                case '1':
+                case 1:
+                    return 'Strongly Disagree';
+                case '2':
+                case 2:
+                    return 'Disagree';
+                case '3':
+                case 3:
+                    return 'Neutral';
+                case '4':
+                case 4:
+                    return 'Agree';
+                case '5':
+                case 5:
+                    return 'Strongly Agree';
+                default:
+                    return '';
+            }
+        }
+
+        function nextQuestion() {
+            saveAnswer();
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                createQuestion(currentQuestion);
+                updateNavigation();
+            } else {
+                // All questions answered
+                showResults();
+            }
+        }
+
+        function prevQuestion() {
+            saveAnswer();
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                createQuestion(currentQuestion);
+                updateNavigation();
+            }
+        }
+
+        function saveAnswer() {
+            const options = document.getElementsByName('response');
+            for (const option of options) {
+                if (option.checked) {
+                    userAnswers[currentQuestion] = parseInt(option.value);
+                    break;
+                }
+            }
+        }
+
+        function updateNavigation() {
+            document.getElementById('prevBtn').style.display = currentQuestion === 0 ? 'none' : 'inline-block';
+            document.getElementById('nextBtn').textContent = currentQuestion === questions.length - 1 ? 'Submit' : 'Next';
+        }
+
+        function calculateScores() {
+            const scores = {};
+            for (const [mindset, questionNumbers] of Object.entries(mindsets)) {
+                let total = 0;
+                for (const qNum of questionNumbers) {
+                    const answer = userAnswers[qNum - 1]; // Adjust index (questions start from index 0)
+                    if (answer != null) {
+                        total += answer;
+                    }
+                }
+                scores[mindset] = total;
+            }
+            return scores;
+        }
+
+        function showResults() {
+            saveAnswer();
+            const unanswered = userAnswers.some(answer => answer === null);
+            if (unanswered) {
+                alert('Please answer all questions before submitting.');
+                return;
+            }
+            document.getElementById('assessment').style.display = 'none';
+            document.getElementById('navigation').style.display = 'none';
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+            const scores = calculateScores();
+            const maxScore = Math.max(...Object.values(scores));
+            const topMindsets = Object.entries(scores)
+                .filter(([_, score]) => score === maxScore)
+                .map(([mindset, _]) => mindset);
+
+            let resultHTML = '<h2>Your Results</h2>';
+            resultHTML += '<h3>Individual Scores:</h3><ul>';
+            for (const [mindset, score] of Object.entries(scores)) {
+                resultHTML += `<li>${mindset}: ${score}/25</li>`;
+            }
+            resultHTML += '</ul>';
+            resultHTML += `<h3>Top Mindset${topMindsets.length > 1 ? 's' : ''}:</h3>`;
+            resultHTML += `<p>${topMindsets.join(', ')} (Score: ${maxScore}/25)</p>`;
+            resultsDiv.innerHTML = resultHTML;
+            document.getElementById('exportBtn').style.display = 'inline-block';
+        }
+
+        function exportResults() {
+            const scores = calculateScores();
+            const maxScore = Math.max(...Object.values(scores));
+            const topMindsets = Object.entries(scores)
+                .filter(([_, score]) => score === maxScore)
+                .map(([mindset, _]) => mindset);
+
+            // Format the content with proper spacing and line breaks
+            const content = [
+                'Mindset Assessment Results',
+                `Date: ${new Date().toLocaleDateString()}`,
+                '',
+                'Individual Scores:',
+                ...Object.entries(scores).map(([mindset, score]) => `${mindset}: ${score}/25`),
+                '',
+                `Top Mindset${topMindsets.length > 1 ? 's' : ''}:`,
+                `${topMindsets.join(', ')} (Score: ${maxScore}/25)`,
+                '',
+                'Score Breakdown:',
+                '1 = Strongly Disagree',
+                '2 = Disagree',
+                '3 = Neutral',
+                '4 = Agree',
+                '5 = Strongly Agree'
+            ].join('\n');
+
+            // Create the download
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = `mindset-assessment-results-${new Date().toISOString().slice(0,10)}.txt`;
+
+            // Append to body
+            document.body.appendChild(link);
+
+            // Trigger download
+            link.click();
+
+            // Cleanup
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(link.href);
+        }
+
+        // Initialize the first question
+        createQuestion(currentQuestion);
+        updateNavigation();
+    </script>
+</body>
+</html>
